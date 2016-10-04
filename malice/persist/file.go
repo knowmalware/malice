@@ -54,6 +54,7 @@ func (file *File) Init() {
 		file.GetSHA256()
 		file.GetSHA512()
 		file.GetFileMimeType()
+		file.GetFileMagicType()
 		file.CopyToSamples()
 		file.gzipSample()
 		file.Data = nil
@@ -233,6 +234,27 @@ func (file *File) GetFileMimeType() (mimetype string, err error) {
 
 	file.Mime = mimetype
 	// log.Printf("mime-type: %v", mimetype)
+	return
+}
+
+// GetFileMagicType returns the textual libmagic type of a file path
+func (file *File) GetFileMagicType() (magictype string, err error) {
+
+	if err := magicmime.Open(magicmime.MAGIC_SYMLINK | magicmime.MAGIC_ERROR); err != nil {
+		log.Fatal(err)
+	}
+	defer magicmime.Close()
+
+	magictype, err = magicmime.TypeByFile(file.Path)
+	if err != nil {
+		log.Fatalf("error occured during type lookup: %v", err)
+	}
+
+	// filetype := http.DetectContentType(file.Data)
+	// file.Mime = filetype
+
+	file.Magic = magictype
+	// log.Printf("magic-type: %v", magictype)
 	return
 }
 
